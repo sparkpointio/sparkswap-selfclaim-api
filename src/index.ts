@@ -1,7 +1,12 @@
 import express, { Request, Response }  from 'express';
+import dotenv from 'dotenv';
 
-const app = express();
-const port = 3000;
+dotenv.config();
+
+const PORT = process.env.PORT || 5000
+
+const app = express()
+    .set('port', PORT);
 
 app.use((req: Request, res: Response, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -23,6 +28,6 @@ app.post('/api/endpoint', (req: Request, res: Response) => {
     res.status(200).json({ message: 'Input received successfully' });
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+app.listen(app.get('port'), () => {
+    console.log('Node app is running on port', app.get('port'));
 });
