@@ -1,16 +1,12 @@
 {
-    "version": 2,
-    "builds": [
-      {
-        "src": "dist/index.js",
-        "use": "@vercel/node"
-      }
-    ],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "methods": ["POST"],
-        "dest": "dist/index.js"
-      }
-    ]
+  "version": 2,
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build" }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "package.json" }
+  ],
+  "env": {
+    "CI": "1"
+  }
 }
