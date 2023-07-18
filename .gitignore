@@ -1,0 +1,28 @@
+# Dependency directories
+/node_modules
+
+# Compiled output
+/dist
+
+# Environment variables
+.env
+
+# IDE/Editor specific files and directories
+/.vscode
+/.idea
+/.vs
+/.nyc_output
+/.cache
+/.DS_Store
+/.sourcemaps
+
+# Logs
+/logs
+
+# Build artifacts
+/build
+
+# Miscellaneous
+*.log
+*.swp
+*.swo
