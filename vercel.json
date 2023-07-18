@@ -8,7 +8,7 @@
     ],
     "routes": [
       {
-        "src": "/api/endpoint",
+        "src": "/(.*)",
         "methods": ["POST"],
         "dest": "dist/index.js"
       }
