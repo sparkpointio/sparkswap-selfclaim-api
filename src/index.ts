@@ -49,13 +49,13 @@ app.use(cors())
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
 
-    if (recipient.length > address_limit) {
-        return res.status(400).send('Too many addresses')
-    }
-
     let json: any = {};
 
     try {
+        if (recipient.length > address_limit) {
+            throw new Error('Too many addresses')
+        }
+
         for (let i = 0; i < recipient.length; i++) {
             if (json[recipient[i].address] != undefined) throw new Error('Duplicate address');
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * ( 10 ** tokenDecimal ))).toString(16);
@@ -73,14 +73,13 @@ app.post('/api/merkle', (req, res) => {
 app.post('/api/merkleupload', async (req, res) => {
     const { recipient, tokenDecimal } = req.body;
 
-    if (recipient.length > address_limit) {
-        console.warn('Failed request received for /api/merkleupload from ' + req.ip)
-        return res.status(400).send('Too many addresses')
-    }
-
     let json: any = {};
 
     try {
+        if (recipient.length > address_limit) {
+            throw new Error('Too many addresses')
+        }
+
         for (let i = 0; i < recipient.length; i++) {
             if (json[recipient[i].address] != undefined) throw new Error('Duplicate address');
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * ( 10 ** tokenDecimal ))).toString(16);

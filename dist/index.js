@@ -60,11 +60,11 @@ app.use(apiKeyMiddleware);
 app.use((0, cors_1.default)());
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
-    if (recipient.length > address_limit) {
-        return res.status(400).send('Too many addresses');
-    }
     let json = {};
     try {
+        if (recipient.length > address_limit) {
+            throw new Error('Too many addresses');
+        }
         for (let i = 0; i < recipient.length; i++) {
             if (json[recipient[i].address] != undefined)
                 throw new Error('Duplicate address');
@@ -80,12 +80,11 @@ app.post('/api/merkle', (req, res) => {
 });
 app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { recipient, tokenDecimal } = req.body;
-    if (recipient.length > address_limit) {
-        console.warn('Failed request received for /api/merkleupload from ' + req.ip);
-        return res.status(400).send('Too many addresses');
-    }
     let json = {};
     try {
+        if (recipient.length > address_limit) {
+            throw new Error('Too many addresses');
+        }
         for (let i = 0; i < recipient.length; i++) {
             if (json[recipient[i].address] != undefined)
                 throw new Error('Duplicate address');
