@@ -36,9 +36,10 @@ const apiKeyMiddleware = (req: Request, res: Response, next: () => void) => {
     const apiKey = req.headers['api-key'];
 
     if (apiKey && apiKey === API_KEY) {
-      next(); // Proceed to the next middleware or route handler
+        next(); // Proceed to the next middleware or route handler
     } else {
-      res.status(401).json({ error: 'Invalid API key' });
+        console.warn('Attempted request failing API_KEY received from ' + req.ip)
+        res.status(401).json({ error: 'Invalid API key' });
     }
 };
 
@@ -60,9 +61,11 @@ app.post('/api/merkle', (req, res) => {
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * ( 10 ** tokenDecimal ))).toString(16);
         }
 
+        console.info('Successful request received for /api/merkle from ' + req.ip)
         return res.status(200).send(JSON.stringify(parseBalanceMap(json)))
     }
     catch (e) {
+        console.warn('Failed request received for /api/merkle from ' + req.ip)
         return res.status(400).send(e);
     }
 });
@@ -71,6 +74,7 @@ app.post('/api/merkleupload', async (req, res) => {
     const { recipient, tokenDecimal } = req.body;
 
     if (recipient.length > address_limit) {
+        console.warn('Failed request received for /api/merkleupload from ' + req.ip)
         return res.status(400).send('Too many addresses')
     }
 
@@ -85,9 +89,11 @@ app.post('/api/merkleupload', async (req, res) => {
         const merkleHash = JSON.stringify(parseBalanceMap(json))
         const result = await ipfs.add(merkleHash);
 
+        console.info('Successful request received for /api/merkleupload from ' + req.ip)
         return res.status(200).send(result)
     }
     catch (e) {
+        console.warn('Failed request received for /api/merkleupload from ' + req.ip)
         return res.status(500).send(e);
     }
 });
@@ -103,17 +109,21 @@ app.get('/api/fetchcids', async (_req: Request, res: Response) => {
             json["type"] = type
         }
 
+        console.info('Successful request received for /api/fetchcids from ' + _req.ip)
         return res.send(json)
     } catch (error) {
+        console.warn('Failed request received for /api/fetchcids from ' + _req.ip)
         return res.status(400).send('Failed to retrieve pinned items:' + error);
     }
 })
 
 app.get('/', (_req: Request, res: Response) => {
+    console.info('Successful request received for / from ' + _req.ip)
     return res.send('Express Typescript on Vercel')
 })
 
 app.get('/ping', (_req: Request, res: Response) => {
+    console.info('Successful request received for /ping from ' + _req.ip)
     return res.send('pong 🏓')
 })
 
