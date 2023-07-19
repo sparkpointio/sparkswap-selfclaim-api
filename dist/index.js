@@ -8,6 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __asyncValues = (this && this.__asyncValues) || function (o) {
+    if (!Symbol.asyncIterator) throw new TypeError("Symbol.asyncIterator is not defined.");
+    var m = o[Symbol.asyncIterator], i;
+    return m ? m.call(o) : (o = typeof __values === "function" ? __values(o) : o[Symbol.iterator](), i = {}, verb("next"), verb("throw"), verb("return"), i[Symbol.asyncIterator] = function () { return this; }, i);
+    function verb(n) { i[n] = o[n] && function (v) { return new Promise(function (resolve, reject) { v = o[n](v), settle(resolve, reject, v.done, v.value); }); }; }
+    function settle(resolve, reject, d, v) { Promise.resolve(v).then(function(v) { resolve({ value: v, done: d }); }, reject); }
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -20,7 +27,7 @@ const esm_1 = __importDefault(require("esm"));
 // Enable ES modules support
 (0, esm_1.default)(module);
 // Import `ipfs-http-client` using the `esm` loader
-const { create } = require('ipfs-http-client');
+const { create, CID } = require('ipfs-http-client');
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT || 8080;
@@ -81,12 +88,38 @@ app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, fu
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * (Math.pow(10, tokenDecimal)))).toString(16);
         }
         const merkleHash = JSON.stringify((0, parse_balance_map_1.parseBalanceMap)(json));
-        console.log(merkleHash);
         const result = yield ipfs.add(merkleHash);
         return res.status(200).send(result);
     }
     catch (e) {
         return res.status(500).send(e);
+    }
+}));
+app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, e_1, _b, _c;
+    let json = {};
+    try {
+        const pins = yield ipfs.pin.ls();
+        try {
+            for (var _d = true, pins_1 = __asyncValues(pins), pins_1_1; pins_1_1 = yield pins_1.next(), _a = pins_1_1.done, !_a; _d = true) {
+                _c = pins_1_1.value;
+                _d = false;
+                const { cid, type } = _c;
+                json["cid"] = cid.toString();
+                json["type"] = type;
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (!_d && !_a && (_b = pins_1.return)) yield _b.call(pins_1);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        return res.send(json);
+    }
+    catch (error) {
+        return res.status(400).send('Failed to retrieve pinned items:' + error);
     }
 }));
 app.get('/', (_req, res) => {

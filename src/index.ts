@@ -8,7 +8,7 @@ import esm from 'esm'
 esm(module);
 
 // Import `ipfs-http-client` using the `esm` loader
-const { create } = require('ipfs-http-client');
+const { create, CID } = require('ipfs-http-client');
 
 dotenv.config();
 
@@ -83,8 +83,6 @@ app.post('/api/merkleupload', async (req, res) => {
         }
 
         const merkleHash = JSON.stringify(parseBalanceMap(json))
-        console.log(merkleHash)
-
         const result = await ipfs.add(merkleHash);
 
         return res.status(200).send(result)
@@ -93,6 +91,23 @@ app.post('/api/merkleupload', async (req, res) => {
         return res.status(500).send(e);
     }
 });
+
+app.get('/api/fetchcids', async (_req: Request, res: Response) => {
+    let json: any = {};
+
+    try {
+        const pins = await ipfs.pin.ls()
+
+        for await (const { cid, type } of pins) {
+            json["cid"] = cid.toString()
+            json["type"] = type
+        }
+
+        return res.send(json)
+    } catch (error) {
+        return res.status(400).send('Failed to retrieve pinned items:' + error);
+    }
+})
 
 app.get('/', (_req: Request, res: Response) => {
     return res.send('Express Typescript on Vercel')
