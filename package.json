@@ -27,6 +27,8 @@
   },
   "homepage": "https://github.com/sparkpointio/sparkswap-selfclaim-api#readme",
   "dependencies": {
+    "@types/cors": "^2.8.13",
+    "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "ethereumjs-util": "^7.0.4",
     "ethers": "^5.0.1",

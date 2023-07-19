@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express'
 import dotenv from 'dotenv';
 import { parseBalanceMap } from './parse-balance-map'
+import cors from 'cors';
 
 dotenv.config();
 
@@ -9,6 +10,7 @@ const port = process.env.PORT || 8080
 const API_KEY = process.env.API_KEY
 
 app.use(express.json());
+app.use(cors());
 
 const apiKeyMiddleware = (req: Request, res: Response, next: () => void) => {
     const apiKey = req.headers['api-key'];
@@ -20,7 +22,8 @@ const apiKeyMiddleware = (req: Request, res: Response, next: () => void) => {
     }
 };
 
-app.use(apiKeyMiddleware);
+app.use(apiKeyMiddleware)
+app.use(cors())
 
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
