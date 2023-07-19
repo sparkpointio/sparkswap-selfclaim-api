@@ -111,7 +111,8 @@ app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, funct
                 _c = pins_1_1.value;
                 _d = false;
                 const { cid, type } = _c;
-                json["cid"] = cid.toString();
+                json["cidv0"] = cid.toString();
+                json["cidv1"] = cid.toV1().toString();
                 json["type"] = type;
             }
         }

@@ -105,7 +105,8 @@ app.get('/api/fetchcids', async (_req: Request, res: Response) => {
         const pins = await ipfs.pin.ls()
 
         for await (const { cid, type } of pins) {
-            json["cid"] = cid.toString()
+            json["cidv0"] = cid.toString()
+            json["cidv1"] = cid.toV1().toString()
             json["type"] = type
         }
 
