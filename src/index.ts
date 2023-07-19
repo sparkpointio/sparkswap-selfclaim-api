@@ -1,10 +1,26 @@
 import express, { Request, Response } from 'express'
+import dotenv from 'dotenv';
 import { parseBalanceMap } from './parse-balance-map'
+
+dotenv.config();
 
 const app = express()
 const port = process.env.PORT || 8080
+const API_KEY = process.env.API_KEY
 
 app.use(express.json());
+
+const apiKeyMiddleware = (req: Request, res: Response, next: () => void) => {
+    const apiKey = req.headers['api-key'];
+
+    if (apiKey && apiKey === API_KEY) {
+      next(); // Proceed to the next middleware or route handler
+    } else {
+      res.status(401).json({ error: 'Invalid API key' });
+    }
+};
+
+app.use(apiKeyMiddleware);
 
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
