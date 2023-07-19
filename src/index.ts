@@ -1,33 +1,16 @@
-import express, { Request, Response }  from 'express';
-import dotenv from 'dotenv';
-
-dotenv.config();
-
-const PORT = process.env.PORT || 5000
+import express, { Request, Response } from 'express'
 
 const app = express()
-    .set('port', PORT);
+const port = process.env.PORT || 8080
 
-app.use((req: Request, res: Response, next) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    next();
-});
+app.get('/', (_req: Request, res: Response) => {
+    return res.send('Express Typescript on Vercel')
+})
 
-app.get('/', (req, res) => {
-    res.send('Hello, world!');
-});
+app.get('/ping', (_req: Request, res: Response) => {
+    return res.send('pong 🏓')
+})
 
-app.post('/api/endpoint', (req: Request, res: Response) => {
-    const { name, email } = req.body;
-  
-    // Process the input data here
-    // ...
-  
-    res.status(200).json({ message: 'Input received successfully' });
-});
-
-app.listen(app.get('port'), () => {
-    console.log('Node app is running on port', app.get('port'));
-});
+app.listen(port, () => {
+    return console.log(`Server is listening on ${port}`)
+})
