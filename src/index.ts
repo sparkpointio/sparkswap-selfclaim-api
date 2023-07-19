@@ -18,6 +18,7 @@ const API_KEY = process.env.API_KEY
 const projectId = process.env.INFURA_PROJECT_ID
 const projectSecret = process.env.INFURA_PROJECT_SECRET
 const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64')
+const address_limit = process.env.ADDRESS_LIMIT || 1
 
 const ipfs = create({
     host: 'ipfs.infura.io',
@@ -47,6 +48,10 @@ app.use(cors())
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
 
+    if (recipient.length > address_limit) {
+        return res.status(400).send('Too many addresses')
+    }
+
     let json: any = {};
 
     try {
@@ -55,7 +60,7 @@ app.post('/api/merkle', (req, res) => {
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * ( 10 ** tokenDecimal ))).toString(16);
         }
 
-        res.status(200).send(JSON.stringify(parseBalanceMap(json)))
+        return res.status(200).send(JSON.stringify(parseBalanceMap(json)))
     }
     catch (e) {
         return res.status(400).send(e);
@@ -64,6 +69,10 @@ app.post('/api/merkle', (req, res) => {
 
 app.post('/api/merkleupload', async (req, res) => {
     const { recipient, tokenDecimal } = req.body;
+
+    if (recipient.length > address_limit) {
+        return res.status(400).send('Too many addresses')
+    }
 
     let json: any = {};
 
@@ -78,7 +87,7 @@ app.post('/api/merkleupload', async (req, res) => {
 
         const result = await ipfs.add(merkleHash);
 
-        res.status(200).send(result)
+        return res.status(200).send(result)
     }
     catch (e) {
         return res.status(500).send(e);

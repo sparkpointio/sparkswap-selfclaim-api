@@ -28,6 +28,7 @@ const API_KEY = process.env.API_KEY;
 const projectId = process.env.INFURA_PROJECT_ID;
 const projectSecret = process.env.INFURA_PROJECT_SECRET;
 const auth = 'Basic ' + Buffer.from(projectId + ':' + projectSecret).toString('base64');
+const address_limit = process.env.ADDRESS_LIMIT || 1;
 const ipfs = create({
     host: 'ipfs.infura.io',
     port: 5001,
@@ -51,6 +52,9 @@ app.use(apiKeyMiddleware);
 app.use((0, cors_1.default)());
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
+    if (recipient.length > address_limit) {
+        return res.status(400).send('Too many addresses');
+    }
     let json = {};
     try {
         for (let i = 0; i < recipient.length; i++) {
@@ -58,7 +62,7 @@ app.post('/api/merkle', (req, res) => {
                 throw new Error('Duplicate address');
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * (Math.pow(10, tokenDecimal)))).toString(16);
         }
-        res.status(200).send(JSON.stringify((0, parse_balance_map_1.parseBalanceMap)(json)));
+        return res.status(200).send(JSON.stringify((0, parse_balance_map_1.parseBalanceMap)(json)));
     }
     catch (e) {
         return res.status(400).send(e);
@@ -66,6 +70,9 @@ app.post('/api/merkle', (req, res) => {
 });
 app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { recipient, tokenDecimal } = req.body;
+    if (recipient.length > address_limit) {
+        return res.status(400).send('Too many addresses');
+    }
     let json = {};
     try {
         for (let i = 0; i < recipient.length; i++) {
@@ -76,7 +83,7 @@ app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, fu
         const merkleHash = JSON.stringify((0, parse_balance_map_1.parseBalanceMap)(json));
         console.log(merkleHash);
         const result = yield ipfs.add(merkleHash);
-        res.status(200).send(result);
+        return res.status(200).send(result);
     }
     catch (e) {
         return res.status(500).send(e);
