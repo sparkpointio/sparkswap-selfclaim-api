@@ -118,6 +118,39 @@ app.get('/api/fetchcids', async (_req: Request, res: Response) => {
     }
 })
 
+const validateCID = (cidString: string): boolean => {
+    try {
+        const cid = CID.parse(cidString);
+        return true;
+    }   catch (error) {
+        return false;
+    }
+}
+  
+
+app.post('/api/fetchproof', async (_req: Request, res: Response) => {
+    const { cidv1, address } = _req.body;
+
+    try {
+        if (!validateCID(cidv1)) {
+            throw new Error('Invalid CID')
+        }
+
+        const response = await fetch(`https://${cidv1}.ipfs.dweb.link/`);
+        const jsonData = await response.json();
+        
+        if (!jsonData.claims[address]) {
+            throw new Error('Address does not exist in proof')
+        }
+
+        console.info('Successful request received for /api/fetchcids from ' + _req.ip)
+        return res.send(jsonData.claims[address])
+    } catch (error) {
+        console.warn('Failed request received for /api/fetchcids from ' + _req.ip)
+        return res.status(400).send('Failed to retrieve proof:' + error);
+    }
+})
+
 app.get('/', (_req: Request, res: Response) => {
     console.info('Successful request received for / from ' + _req.ip)
     return res.send('Express Typescript on Vercel')

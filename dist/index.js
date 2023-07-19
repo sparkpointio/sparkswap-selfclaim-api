@@ -131,6 +131,34 @@ app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, funct
         return res.status(400).send('Failed to retrieve pinned items:' + error);
     }
 }));
+const validateCID = (cidString) => {
+    try {
+        const cid = CID.parse(cidString);
+        return true;
+    }
+    catch (error) {
+        return false;
+    }
+};
+app.post('/api/fetchproof', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { cidv1, address } = _req.body;
+    try {
+        if (!validateCID(cidv1)) {
+            throw new Error('Invalid CID');
+        }
+        const response = yield fetch(`https://${cidv1}.ipfs.dweb.link/`);
+        const jsonData = yield response.json();
+        if (!jsonData.claims[address]) {
+            throw new Error('Address does not exist in proof');
+        }
+        console.info('Successful request received for /api/fetchcids from ' + _req.ip);
+        return res.send(jsonData.claims[address]);
+    }
+    catch (error) {
+        console.warn('Failed request received for /api/fetchcids from ' + _req.ip);
+        return res.status(400).send('Failed to retrieve proof:' + error);
+    }
+}));
 app.get('/', (_req, res) => {
     console.info('Successful request received for / from ' + _req.ip);
     return res.send('Express Typescript on Vercel');
