@@ -100,7 +100,7 @@ app.post('/api/merkleupload', async (req, res) => {
     }
 });
 
-app.get('/api/fetchcids', async (_req: Request, res: Response) => {
+const fetchcids = async () => {
     let pinnedCids: any = [];
 
     try {
@@ -113,6 +113,19 @@ app.get('/api/fetchcids', async (_req: Request, res: Response) => {
             json["type"] = type
             pinnedCids.push(json)
         }
+
+        return pinnedCids
+    }
+    catch (error) {
+        throw new Error('Failed to retrieve pinned items')
+    }
+}
+
+app.get('/api/fetchcids', async (_req: Request, res: Response) => {
+    let pinnedCids: any = [];
+
+    try {
+        pinnedCids = await fetchcids()
 
         console.info('Successful request received for /api/fetchcids from ' + _req.ip)
         return res.send({pinnedCids})
@@ -151,6 +164,36 @@ app.post('/api/fetchproof', async (_req: Request, res: Response) => {
         return res.send(jsonData.claims[address])
     } catch (error) {
         console.warn('Failed request received for /api/fetchcids from ' + _req.ip)
+        return res.status(400).send('Failed to retrieve proof:' + error);
+    }
+})
+
+app.post('/api/fetchproofs', async (_req: Request, res: Response) => {
+    let pinnedCids: any = []
+    let ret: any = []
+    const { address } = _req.body;
+
+    try {
+        pinnedCids = await fetchcids()
+
+        for (const { cidv1 } of pinnedCids) {
+            const response = await fetch(`https://${cidv1}.ipfs.dweb.link/`);
+            const jsonData = await response.json()
+
+            if (!jsonData.claims[address]) {
+                continue
+            }
+
+            ret.push({
+                "merkleRoot": jsonData.merkleRoot,
+                "claims": jsonData.claims[address]
+            })
+        }
+        
+        console.info('Successful request received for /api/fetchproofs from ' + _req.ip)
+        return res.send(ret)
+    } catch (error) {
+        console.warn('Failed request received for /api/fetchproofs from ' + _req.ip)
         return res.status(400).send('Failed to retrieve proof:' + error);
     }
 })

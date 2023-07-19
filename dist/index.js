@@ -103,7 +103,7 @@ app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, fu
         return res.status(500).send(e);
     }
 }));
-app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const fetchcids = () => __awaiter(void 0, void 0, void 0, function* () {
     var _a, e_1, _b, _c;
     let pinnedCids = [];
     try {
@@ -127,6 +127,16 @@ app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, funct
             }
             finally { if (e_1) throw e_1.error; }
         }
+        return pinnedCids;
+    }
+    catch (error) {
+        throw new Error('Failed to retrieve pinned items');
+    }
+});
+app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let pinnedCids = [];
+    try {
+        pinnedCids = yield fetchcids();
         console.info('Successful request received for /api/fetchcids from ' + _req.ip);
         return res.send({ pinnedCids });
     }
@@ -160,6 +170,31 @@ app.post('/api/fetchproof', (_req, res) => __awaiter(void 0, void 0, void 0, fun
     }
     catch (error) {
         console.warn('Failed request received for /api/fetchcids from ' + _req.ip);
+        return res.status(400).send('Failed to retrieve proof:' + error);
+    }
+}));
+app.post('/api/fetchproofs', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    let pinnedCids = [];
+    let ret = [];
+    const { address } = _req.body;
+    try {
+        pinnedCids = yield fetchcids();
+        for (const { cidv1 } of pinnedCids) {
+            const response = yield fetch(`https://${cidv1}.ipfs.dweb.link/`);
+            const jsonData = yield response.json();
+            if (!jsonData.claims[address]) {
+                continue;
+            }
+            ret.push({
+                "merkleRoot": jsonData.merkleRoot,
+                "claims": jsonData.claims[address]
+            });
+        }
+        console.info('Successful request received for /api/fetchproofs from ' + _req.ip);
+        return res.send(ret);
+    }
+    catch (error) {
+        console.warn('Failed request received for /api/fetchproofs from ' + _req.ip);
         return res.status(400).send('Failed to retrieve proof:' + error);
     }
 }));
