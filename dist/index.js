@@ -93,7 +93,10 @@ app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, fu
         const merkleHash = JSON.stringify((0, parse_balance_map_1.parseBalanceMap)(json));
         const result = yield ipfs.add(merkleHash);
         console.info('Successful request received for /api/merkleupload from ' + req.ip);
-        return res.status(200).send(result);
+        return res.status(200).send({
+            "cidv0": result.cid.toString(),
+            "cidv1": result.cid.toV1().toString()
+        });
     }
     catch (e) {
         console.warn('Failed request received for /api/merkleupload from ' + req.ip);
@@ -102,7 +105,7 @@ app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, fu
 }));
 app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, e_1, _b, _c;
-    let json = {};
+    let pinnedCids = [];
     try {
         const pins = yield ipfs.pin.ls();
         try {
@@ -110,9 +113,11 @@ app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, funct
                 _c = pins_1_1.value;
                 _d = false;
                 const { cid, type } = _c;
+                let json = {};
                 json["cidv0"] = cid.toString();
                 json["cidv1"] = cid.toV1().toString();
                 json["type"] = type;
+                pinnedCids.push(json);
             }
         }
         catch (e_1_1) { e_1 = { error: e_1_1 }; }
@@ -123,7 +128,7 @@ app.get('/api/fetchcids', (_req, res) => __awaiter(void 0, void 0, void 0, funct
             finally { if (e_1) throw e_1.error; }
         }
         console.info('Successful request received for /api/fetchcids from ' + _req.ip);
-        return res.send(json);
+        return res.send({ pinnedCids });
     }
     catch (error) {
         console.warn('Failed request received for /api/fetchcids from ' + _req.ip);

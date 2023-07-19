@@ -89,7 +89,10 @@ app.post('/api/merkleupload', async (req, res) => {
         const result = await ipfs.add(merkleHash);
 
         console.info('Successful request received for /api/merkleupload from ' + req.ip)
-        return res.status(200).send(result)
+        return res.status(200).send({
+            "cidv0": result.cid.toString(),
+            "cidv1": result.cid.toV1().toString()
+        })
     }
     catch (e) {
         console.warn('Failed request received for /api/merkleupload from ' + req.ip)
@@ -98,19 +101,21 @@ app.post('/api/merkleupload', async (req, res) => {
 });
 
 app.get('/api/fetchcids', async (_req: Request, res: Response) => {
-    let json: any = {};
+    let pinnedCids: any = [];
 
     try {
         const pins = await ipfs.pin.ls()
 
         for await (const { cid, type } of pins) {
+            let json: any = {};
             json["cidv0"] = cid.toString()
             json["cidv1"] = cid.toV1().toString()
             json["type"] = type
+            pinnedCids.push(json)
         }
 
         console.info('Successful request received for /api/fetchcids from ' + _req.ip)
-        return res.send(json)
+        return res.send({pinnedCids})
     } catch (error) {
         console.warn('Failed request received for /api/fetchcids from ' + _req.ip)
         return res.status(400).send('Failed to retrieve pinned items:' + error);
