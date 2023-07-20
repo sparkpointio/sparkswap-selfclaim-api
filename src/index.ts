@@ -4,7 +4,7 @@ import { parseBalanceMap } from './parse-balance-map'
 import cors from 'cors'
 import esm from 'esm'
 import Web3 from 'web3'
-import abi from './abi'
+import { selfclaim_abi, erc20_abi } from './abi'
 
 // Enable ES modules support
 esm(module);
@@ -41,7 +41,7 @@ const web3 = new Web3(
 )
 
 const airdropContract = new web3.eth.Contract(
-    abi,
+    selfclaim_abi,
     process.env.SELFCLAIM_CONTRACT
 )
 
@@ -203,9 +203,15 @@ app.post('/api/fetchproofs', async (_req: Request, res: Response) => {
             const airdropIDs = await airdropContract.methods.airdropIDs(jsonData.merkleRoot).call()
             for (const airdropID of airdropIDs) {
                 const airdrop = await airdropContract.methods.airdrop(airdropID).call()
+                const tokenContract = new web3.eth.Contract(
+                    erc20_abi,
+                    airdrop.tokenAddress
+                )
+                const decimal = await tokenContract.methods.decimals().call()
                 airdropDetails.push({
                     "id": airdropID,
                     "tokenAddress": airdrop.tokenAddress,
+                    "tokenDecimal": decimal,
                     "totalAmount": airdrop.totalAmount,
                     "totalClaimed": airdrop.totalClaimed
                 })

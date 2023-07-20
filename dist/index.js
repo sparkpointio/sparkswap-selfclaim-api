@@ -25,7 +25,7 @@ const parse_balance_map_1 = require("./parse-balance-map");
 const cors_1 = __importDefault(require("cors"));
 const esm_1 = __importDefault(require("esm"));
 const web3_1 = __importDefault(require("web3"));
-const abi_1 = __importDefault(require("./abi"));
+const abi_1 = require("./abi");
 // Enable ES modules support
 (0, esm_1.default)(module);
 // Import `ipfs-http-client` using the `esm` loader
@@ -49,7 +49,7 @@ const ipfs = create({
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
 const web3 = new web3_1.default(new web3_1.default.providers.HttpProvider(process.env.WEB3_PROVIDER));
-const airdropContract = new web3.eth.Contract(abi_1.default, process.env.SELFCLAIM_CONTRACT);
+const airdropContract = new web3.eth.Contract(abi_1.selfclaim_abi, process.env.SELFCLAIM_CONTRACT);
 const apiKeyMiddleware = (req, res, next) => {
     const apiKey = req.headers['api-key'];
     if (apiKey && apiKey === API_KEY) {
@@ -194,9 +194,12 @@ app.post('/api/fetchproofs', (_req, res) => __awaiter(void 0, void 0, void 0, fu
             const airdropIDs = yield airdropContract.methods.airdropIDs(jsonData.merkleRoot).call();
             for (const airdropID of airdropIDs) {
                 const airdrop = yield airdropContract.methods.airdrop(airdropID).call();
+                const tokenContract = new web3.eth.Contract(abi_1.erc20_abi, airdrop.tokenAddress);
+                const decimal = yield tokenContract.methods.decimals().call();
                 airdropDetails.push({
                     "id": airdropID,
                     "tokenAddress": airdrop.tokenAddress,
+                    "tokenDecimal": decimal,
                     "totalAmount": airdrop.totalAmount,
                     "totalClaimed": airdrop.totalClaimed
                 });
