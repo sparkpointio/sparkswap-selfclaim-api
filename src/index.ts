@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import { parseBalanceMap } from './parse-balance-map'
 import cors from 'cors'
 import esm from 'esm'
+import Web3 from 'web3'
+import abi from './abi'
 
 // Enable ES modules support
 esm(module);
@@ -31,6 +33,17 @@ const ipfs = create({
 
 app.use(express.json());
 app.use(cors());
+
+const web3 = new Web3(
+    new Web3.providers.HttpProvider(
+        process.env.WEB3_PROVIDER
+    )
+)
+
+const airdropContract = new web3.eth.Contract(
+    abi,
+    process.env.SELFCLAIM_CONTRACT
+)
 
 const apiKeyMiddleware = (req: Request, res: Response, next: () => void) => {
     const apiKey = req.headers['api-key'];
@@ -185,9 +198,23 @@ app.post('/api/fetchproofs', async (_req: Request, res: Response) => {
                 continue
             }
 
+            let airdropDetails: any = []
+
+            const airdropIDs = await airdropContract.methods.airdropIDs(jsonData.merkleRoot).call()
+            for (const airdropID of airdropIDs) {
+                const airdrop = await airdropContract.methods.airdrop(airdropID).call()
+                airdropDetails.push({
+                    "id": airdropID,
+                    "tokenAddress": airdrop.tokenAddress,
+                    "totalAmount": airdrop.totalAmount,
+                    "totalClaimed": airdrop.totalClaimed
+                })
+            }
+
             ret.push({
                 "merkleRoot": jsonData.merkleRoot,
-                "claims": jsonData.claims[address]
+                "claims": jsonData.claims[address],
+                "airdrops": airdropDetails
             })
         }
         
