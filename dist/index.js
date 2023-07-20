@@ -57,7 +57,6 @@ const apiKeyMiddleware = (req, res, next) => {
     }
 };
 app.use(apiKeyMiddleware);
-app.use((0, cors_1.default)());
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
     let json = {};
@@ -90,12 +89,14 @@ app.post('/api/merkleupload', (req, res) => __awaiter(void 0, void 0, void 0, fu
                 throw new Error('Duplicate address');
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * (Math.pow(10, tokenDecimal)))).toString(16);
         }
-        const merkleHash = JSON.stringify((0, parse_balance_map_1.parseBalanceMap)(json));
-        const result = yield ipfs.add(merkleHash);
+        const merkleHash = (0, parse_balance_map_1.parseBalanceMap)(json);
+        const merkleHashStr = JSON.stringify(merkleHash);
+        const result = yield ipfs.add(merkleHashStr);
         console.info('Successful request received for /api/merkleupload from ' + req.ip);
         return res.status(200).send({
             "cidv0": result.cid.toString(),
-            "cidv1": result.cid.toV1().toString()
+            "cidv1": result.cid.toV1().toString(),
+            "merkleRoot": merkleHash.merkleRoot
         });
     }
     catch (e) {

@@ -44,7 +44,6 @@ const apiKeyMiddleware = (req: Request, res: Response, next: () => void) => {
 };
 
 app.use(apiKeyMiddleware)
-app.use(cors())
 
 app.post('/api/merkle', (req, res) => {
     const { recipient, tokenDecimal } = req.body;
@@ -85,13 +84,15 @@ app.post('/api/merkleupload', async (req, res) => {
             json[recipient[i].address] = (Math.ceil(recipient[i].amount * ( 10 ** tokenDecimal ))).toString(16);
         }
 
-        const merkleHash = JSON.stringify(parseBalanceMap(json))
-        const result = await ipfs.add(merkleHash);
+        const merkleHash = parseBalanceMap(json);
+        const merkleHashStr = JSON.stringify(merkleHash);
+        const result = await ipfs.add(merkleHashStr);
 
         console.info('Successful request received for /api/merkleupload from ' + req.ip)
         return res.status(200).send({
             "cidv0": result.cid.toString(),
-            "cidv1": result.cid.toV1().toString()
+            "cidv1": result.cid.toV1().toString(),
+            "merkleRoot": merkleHash.merkleRoot
         })
     }
     catch (e) {
